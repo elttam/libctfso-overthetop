@@ -1,0 +1,78 @@
+---
+- name: sysctl coredump pattern
+  sysctl:
+    name: kernel.core_pattern
+    value: "core.%t.%p"
+    state: present
+    sysctl_set: yes
+    reload: yes
+  
+- name: sysctl aslr
+  sysctl:
+    name: kernel.randomize_va_space
+    value: 2
+    state: present
+    sysctl_set: yes
+    reload: yes
+
+- name: sysctl ptrace enable
+  sysctl:
+    name: kernel.yama.ptrace_scope
+    value: 0
+    state: present
+    sysctl_set: yes
+    reload: yes
+
+- name: Create CTF groups
+  group:
+    name: "{{ ctf_group }}"
+    state: present
+
+- name: Create CTF users
+  user:
+    name: "{{ ctf_user }}"
+    group: "{{ ctf_group }}"
+    password: "{{ ctf_password }}"
+    shell: "/bin/bash"
+
+- name: Create the root challenges directory
+  file:
+    path: "{{ challenges_root_path }}"
+    state: directory
+    owner: root
+    group: "{{ ctf_group }}"
+    mode: '0755'
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install common tooling
+  apt:
+    name: ['build-essential', 'gcc-arm-linux-gnueabihf', 'gcc-multilib-arm-linux-gnueabihf', 'binfmt-support', 'gdb', 'gdb-multiarch']
+    update_cache: yes
+
+- name: Update sshd_config
+  copy:
+    src: sshd_config
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Run QEMU wrapper script
+  script: qemu-wrapper.sh
+
+- name: Copy the arm binfmt handler
+  copy:
+    src: qemu-arm
+    dest: "/usr/share/binfmts/qemu-arm"
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+
+- name: Install binfmt handler
+  command: "update-binfmts --import"
+  become: true
+

@@ -1,0 +1,60 @@
+---
+- name: Create challenge group
+  group:
+    name: "{{ flag_group }}"
+    state: present
+
+- name: Create flag user
+  user:
+    name: "{{ flag_user }}"
+    group: "{{ flag_group }}"
+    create_home: False
+
+- name: Create challenge directory
+  file:
+    path: "{{ challenges_root_path }}/{{ challenge_name }}"
+    state: directory
+    owner: "{{ flag_user }}"
+    group: "{{ ctf_group }}"
+    mode: 0750
+
+- name: Create flag file
+  copy:
+    src: flag.txt
+    dest: "{{ flag_path }}"
+    owner: "{{ flag_user }}"
+    group: "{{ flag_user }}"
+    mode: 0600
+
+- name: Copy challenge README
+  copy:
+    src: README.txt
+    dest: "{{ challenge_root }}/README.txt"
+    owner: "{{ flag_user }}"
+    group: "{{ ctf_group }}"  
+    mode: 0640
+
+- name: Copy challenge README
+  copy:
+    src: malloc-2.6.6.c
+    dest: "{{ challenge_root }}/malloc-2.6.6.c"
+    owner: "{{ flag_user }}"
+    group: "{{ ctf_group }}"  
+    mode: 0640
+
+- name: Copy challenge source
+  template:
+    src: challenge.c.j2
+    dest: "{{ challenge_root }}/{{ challenge_name }}.c"
+    owner: "{{ flag_user }}"
+    group: "{{ ctf_group }}"  
+    mode: 0640
+
+- name: Build challenge
+  shell: |
+    arm-linux-gnueabihf-gcc "{{ challenge_name }}.c" -o "{{ challenge_name }}" -ggdb3 -fstack-protector-all -fno-pic -no-pie -Wl,-z,relro,-z,-noexecstack
+    chown "{{ flag_user }}":"{{ ctf_group }}" "{{ challenge_name }}"
+    chmod 4750 "{{ challenge_name }}"
+  args:
+    chdir: "{{ challenge_root }}"
+

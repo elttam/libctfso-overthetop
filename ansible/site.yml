@@ -1,0 +1,17 @@
+---
+- hosts: all
+  gather_facts: false
+  become: yes
+  vars:
+    ctf_user: hahn
+    ctf_group: ctf
+    # password == hahn
+    ctf_password: "$6$1WkQ9Y4Q8MpY$FXwu/zP6SFZ/k6P5BovKG57arbRsx4gnGInJ5DQ9XD/EZSs83EWvf/LKd5z600lgOn8//Inf.326zvQYbjSde/"
+    challenges_root_path: /challenges
+
+  roles:
+    - linux-config
+    - softcover-walk
+    - bashes-sp-data
+    - fat-morphine
+    - whoever-flopa

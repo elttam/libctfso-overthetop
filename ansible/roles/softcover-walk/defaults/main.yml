@@ -1,0 +1,6 @@
+---
+challenge_name: softcover-walk
+challenge_root: "{{ challenges_root_path }}/{{ challenge_name }}"
+flag_path: "{{ challenge_root }}/flag.txt"
+flag_user: "{{ challenge_name }}"
+flag_group: "{{ flag_user }}"

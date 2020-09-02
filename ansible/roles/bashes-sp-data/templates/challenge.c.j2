@@ -1,0 +1,61 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#define FLAG "{{ flag_path }}"
+
+void read_flag()
+{
+	int fd = -1;
+	char buf[512] = {0};
+
+	fd = open(FLAG, O_RDONLY);
+	if(fd == -1) return;
+
+	read(fd, &buf, sizeof(buf)-1);
+	printf("%s\n", buf);
+	close(fd);
+	exit(0);
+}
+
+void say_hello(char *p)
+{
+	printf("Hello %s\n", p);
+	return;
+}
+
+void say_goodbye(char *p)
+{
+	printf("Goodbye %s\n", p);
+	return;
+}
+
+int main(int argc, char **argv)
+{
+	static struct {
+    char buffer[256];
+	  void (*fn)(char *);
+  } talk;
+
+	if(argc <= 1) {
+		printf("%s <name>\n", argv[0] == NULL ? "./challenge" : argv[0]);
+		exit(1);
+	}
+
+	do {
+		if(talk.fn == NULL) {
+			talk.fn = &say_hello;
+			sprintf(talk.buffer, "%s", argv[1]);
+		} else if(talk.fn == &say_hello) {
+			talk.fn = &say_goodbye;
+		}
+		talk.fn(talk.buffer);
+	} while(talk.fn != say_goodbye);
+
+	return 0;
+}
+
